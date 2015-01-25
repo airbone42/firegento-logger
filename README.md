@@ -7,6 +7,11 @@ firegento community.
 
 See the [**Usage**](#usage) Chapter below to see how to use it.
 
+Pleas be aware of the following restrictions:
+
+* The ProxiBlue NewRelic extension use the same logic to log to NewRelic and will block
+  FireGento Logger extension.
+
 Installation Instructions
 -------------------------
 
@@ -51,7 +56,6 @@ Uninstallation
 --------------
 * Remove all extension files from your Magento installation
 
-<a name="usage">
 ## Usage
 
 Configure the different loggers in `System > Configuration > Advanced > Firegento Logger`
@@ -71,6 +75,7 @@ Configure the different loggers in `System > Configuration > Advanced > Firegent
 * Nicolai Essig
 * Daniel Kröger
 * Michael Ryvlin
+* Tobias Zander
 
 ### Current Status of Project
 
@@ -104,8 +109,8 @@ For ChromeLogger we use https://github.com/ccampbell/chromephp
 Make a fork, commit to develop branch and make a pull request
 
 ### Some Hints
-* There are combinations there doesn't work together
-** You can't use Chromelogger with the embeded queueing model, because the queueing takes place after the response
+* There are combinations that don't work together
+  * You can't use Chromelogger with the embeded queueing model, because the queueing takes place after the response
 is send to the client
 
 Licence
