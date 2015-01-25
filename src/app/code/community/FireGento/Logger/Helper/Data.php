@@ -119,9 +119,9 @@ class FireGento_Logger_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * Add useful metadata to the event
      *
-     * @param FireGento_Logger_Model_Event       &$event          Event Data
-     * @param null|string $notAvailable    Not available
-     * @param bool        $enableBacktrace Flag for Backtrace
+     * @param FireGento_Logger_Model_Event &$event          Event Data
+     * @param null|string                  $notAvailable    Not available
+     * @param bool                         $enableBacktrace Flag for Backtrace
      */
     public function addEventMetadata(&$event, $notAvailable = null, $enableBacktrace = false)
     {
@@ -256,10 +256,10 @@ class FireGento_Logger_Helper_Data extends Mage_Core_Helper_Abstract
         // Fetch request data
         $requestData = array();
         if (!empty($_GET)) {
-            $requestData[] = '  GET|'.substr(@json_encode($_GET), 0, 1000);
+            $requestData[] = '  GET|'.substr(@json_encode($this->filterSensibleData($_GET)), 0, 1000);
         }
         if (!empty($_POST)) {
-            $requestData[] = '  POST|'.substr(@json_encode($_POST), 0, 1000);
+            $requestData[] = '  POST|'.substr(@json_encode($this->filterSensibleData($_POST)), 0, 1000);
         }
         if (!empty($_FILES)) {
             $requestData[] = '  FILES|'.substr(@json_encode($_FILES), 0, 1000);
@@ -285,6 +285,55 @@ class FireGento_Logger_Helper_Data extends Mage_Core_Helper_Abstract
         }
     }
 
+    /**
+     * filter sensible data like credit card and password from requests
+     *
+     * @param  array $data the data to be filtered
+     * @return array
+     */
+    private function filterSensibleData($data)
+    {
+        if (is_array($data)) {
+            $keysToFilter = explode("\n",
+                Mage::helper('firegento_logger')->getLoggerConfig('general/filter_request_data'));
+            foreach ($keysToFilter as $key) {
+                if ($key !== '') {
+                    $subkeys = explode('.', $key);
+                    $data = $this->filterDataFromMultidimensionalKey($data, $subkeys);
+                }
+            }
+        }
+        return $data;
+    }
+
+    /**
+     * Filter the data.
+     *
+     * @param  array $data    array to be filtered
+     * @param  array $subkeys list of multidimensional keys
+     * @return array
+     */
+    private function filterDataFromMultidimensionalKey(array $data, array $subkeys)
+    {
+        $countSubkeys = count($subkeys);
+        $lastSubkey = ($countSubkeys - 1);
+        $subdata = &$data;
+        for ($i = 0; $i < $lastSubkey; $i++) {
+            if (isset($subdata[$subkeys[$i]])) {
+                $subdata =  &$subdata[$subkeys[$i]];
+            }
+        }
+        if (array_key_exists($subkeys[$lastSubkey], $subdata)) {
+            $subdata[$subkeys[$lastSubkey]] = '*****';
+        }
+        return $data;
+    }
+
+    /**
+     * Get all the notification rules.
+     *
+     * @return array|mixed|null an array of rules
+     */
     public function getEmailNotificationRules()
     {
         if ($this->_notificationRules != null) {
@@ -304,14 +353,14 @@ class FireGento_Logger_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * Convert Array to Event Object
      *
-     * @param array $event Event
+     * @param  array $event Event
      *
      * @return FireGento_Logger_Model_Event
      */
     public function getEventObjectFromArray($event)
     {
         // if more than one logger is active the first logger convert the array
-        if(is_object($event) && get_class($event) == get_class(Mage::getModel('firegento_logger/event'))) {
+        if (is_object($event) && get_class($event) == get_class(Mage::getModel('firegento_logger/event'))) {
             return $event;
         }
         return Mage::getModel('firegento_logger/event')
